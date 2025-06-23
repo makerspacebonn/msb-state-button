@@ -12,6 +12,9 @@ class ButtonHandler:
         self.cooldown_period = cooldown_period
         self.last_press_time = 0
         self.button_pin.irq(trigger=machine.Pin.IRQ_FALLING, handler=self.button_interrupt_handler)
+        self.click_callback = None
+    def set_click_callback(self, click_callback):
+        self.click_callback = click_callback
 
     def button_interrupt_handler(self, pin):
         current_time = time.ticks_ms()
@@ -29,5 +32,7 @@ class ButtonHandler:
                         print("Button pressed! Count:", self.button_press_count)
                         self.button_pressed = True
                         self.last_press_time = current_time
+                        if (self.click_callback is not None):
+                            self.click_callback(pin)
                     else:
                         print("Button pressed, but on cooldown")

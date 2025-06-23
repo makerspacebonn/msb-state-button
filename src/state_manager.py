@@ -1,5 +1,7 @@
 import json
 import time
+
+import gc
 import urequests as requests
 
 class StateManager:
@@ -28,6 +30,7 @@ class StateManager:
         headers = {
             "msb-key": self.api_key,
         }
+        print("mem free: ", gc.mem_free())
         r = requests.get(url, headers=headers)
         data = json.loads(r.text)
         self.current_state = "open" if data["state"]["open"] else "closed"
