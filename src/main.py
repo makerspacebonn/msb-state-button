@@ -83,7 +83,16 @@ def wifi_listener(message):
         led_wifi.off()
         neo_wlan_disconnected()
 
+def mqtt_connection_listener(connected):
+    if connected:
+        print("MQTT connection established")
+    else:
+        print("MQTT connection lost")
+        np[1] = (100, 100, 0)  # Yellow for MQTT disconnected
+        np.write()
+
 wifi_manager.addListener(wifi_listener)
+mqtt_service.add_connection_listener(mqtt_connection_listener)
 wifi_manager.connect_wifi()
 
 
@@ -108,11 +117,10 @@ while True:
     try:
         wdt.feed()
         time.sleep(0.300)
+        wifi_manager.check_and_reconnect()
         mqtt_service.check_msg()
         state_manager.retrieve_state()
         wdt.feed()
-
-        wifi_manager.check_and_reconnect()
 
         if button_handler.button_pressed:
             gc.collect()
@@ -125,23 +133,20 @@ while True:
             led_biglight.value(1)
             led_buttonlight.value(1)
             for ledid in range(NUM_LEDS):
-                np[ledid] = (0, 100, 0)  # set the first pixel to white
-            np.write()  # write data to all pixels
-            r, g, b = np[0]
+                np[ledid] = (0, 100, 0)
         else:
             led_intern.value(0)
             led_biglight.value(0)
             led_buttonlight.value(0)
             for ledid in range(NUM_LEDS):
-                np[ledid] = (10, 0, 0)  # set the first pixel to white
-            np.write()  # write data to all pixels
-            r, g, b = np[0]
-    except OSError as e:
+                np[ledid] = (10, 0, 0)
+
+        # np[1] shows MQTT status: yellow if disconnected, otherwise follows state
+        if not mqtt_service.is_connected():
+            np[1] = (100, 100, 0)
+        np.write()
+    except Exception as e:
         print("Error: ", e)
         sys.print_exception(e)
-        mqtt_service.connect_and_subscribe()
-        print("MQTT Reconnected")
-    except Exception as e:
-        print("Unexpected error: ", e)
-        time.sleep(5)
+        time.sleep(1)
 
