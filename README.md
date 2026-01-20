@@ -49,18 +49,19 @@ https://micropython-stubs.readthedocs.io/en/main/24_pycharm.html
 
 ## Configuration
 
-Create a `secrets.py` file in `src/` with:
+Create a `secrets.py` file in `src/` (see `secrets_example.py`):
 
 ```python
-mqtt_server = "your.mqtt.server"
-mqtt_user = "username"
-mqtt_pass = "password"
-API_key = "your-api-key"
-wifi_SSID = "your-wifi"
-wifi_passwd = "your-password"
+mqtt_server = 'mqtt.example.com'
+mqtt_user = 'username'
+mqtt_pass = 'password'
+
+API_key = 'your-api-key'
+
+# Dictionary of known WiFi networks to connect to
 wifi_access = {
-    "SSID1": "password1",
-    "SSID2": "password2",
+    'MyWiFi': 'wifi-password',
+    'BackupWiFi': 'backup-password',
 }
 ```
 

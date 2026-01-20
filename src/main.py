@@ -14,8 +14,6 @@ mqtt_server = secrets.mqtt_server
 mqtt_user = secrets.mqtt_user
 mqtt_pass = secrets.mqtt_pass
 api_key = secrets.API_key
-wifi_ssid = secrets.wifi_SSID
-wifi_password = secrets.wifi_passwd
 hostname_str = "spachtelknopf"
 
 from mqtt_service import MQTTService
