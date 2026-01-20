@@ -1,2 +1,5 @@
 src/secrets.py
 .idea
+.venv/
+__pycache__/
+*.pyc
