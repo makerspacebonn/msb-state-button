@@ -1,31 +1,86 @@
 # State Button for the Makerspace Bonn
-A button for our makerspace, that can be pressed, to change the publicly 
-available opening information in our space. Lights indicate the current
-space state.
 
-With very little python knowledge, this project started 
-from an idea of one of the Makerspace Bonn members, which 
-was idling fo a while. Since the inspiring module used micropython,
-it was used here too for learning adventures.
-## ESP32
+A physical button for our makerspace that changes the publicly available opening information. LED indicators show the current space state and connection status.
 
-- install micropython
-- mine was a wroom: https://micropython.org/download/ESP32_GENERIC/
-- 
+## Features
 
-## IDE (I used Pycharm, because i like JetBrains IDEs)
-### install micropython tools plugin
-1. https://plugins.jetbrains.com/plugin/26227-micropython-tools
-1. Create run configuration
+- **Physical Button**: Press to toggle space open/closed state
+- **LED Strip Status**: 16 NeoPixel LEDs showing space state (green = open, red = closed)
+- **Status LEDs**:
+  - LED 0 (first): WiFi status - blinks yellow when connecting, solid yellow on error, follows state when connected
+  - LED 1 (second): MQTT status - blinks yellow when disconnected, follows state when connected
+- **Robust Connectivity**:
+  - WiFi reconnection with timeout (30s) and retries (3 attempts)
+  - MQTT reconnection with exponential backoff (5s to 60s)
+- **Watchdog**: 42s timeout to recover from hangs
 
-### Stubs for understanding micropython libraries and syntax
+## Hardware
+
+- ESP32 (WROOM)
+- WS2812B NeoPixel LED strip (16 LEDs)
+- Physical button
+- Status LEDs (optional GPIO LEDs)
+
+### Pin Configuration
+
+| Component | GPIO Pin |
+|-----------|----------|
+| NeoPixel Strip | 5 |
+| Button | 9 |
+| Big Light LED | 6 |
+| Button Light LED | 3 |
+| Internal LED | 4 |
+
+## Software Setup
+
+### ESP32
+
+1. Install MicroPython: https://micropython.org/download/ESP32_GENERIC/
+2. Flash the firmware to your ESP32
+
+### IDE (PyCharm recommended)
+
+1. Install MicroPython Tools plugin: https://plugins.jetbrains.com/plugin/26227-micropython-tools
+2. Create run configuration for your ESP32
+
+### Stubs for IDE Support
+
 https://micropython-stubs.readthedocs.io/en/main/24_pycharm.html
 
-### References
-- reference to the infocenter
+## Configuration
 
-### Mentions
+Create a `secrets.py` file in `src/` with:
 
-Got inspire by the project from https://gitlab.com/jhaand/hacker-hotel-space-state/
+```python
+mqtt_server = "your.mqtt.server"
+mqtt_user = "username"
+mqtt_pass = "password"
+API_key = "your-api-key"
+wifi_SSID = "your-wifi"
+wifi_passwd = "your-password"
+wifi_access = {
+    "SSID1": "password1",
+    "SSID2": "password2",
+}
+```
 
+## Architecture
 
+```
+src/
+├── main.py           # Main loop and initialization
+├── mqtt_service.py   # MQTT client with reconnection logic
+├── wifi_manager.py   # WiFi management with reconnection
+├── state_led.py      # Status LED control (ignore/error/blinking)
+├── state_manager.py  # Space state management
+├── button_handler.py # Button debouncing and cooldown
+└── secrets.py        # Configuration (not in repo)
+```
+
+## References
+
+- Makerspace Bonn Infocenter
+
+## Mentions
+
+Inspired by the project from https://gitlab.com/jhaand/hacker-hotel-space-state/
