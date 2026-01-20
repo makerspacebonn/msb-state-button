@@ -22,6 +22,7 @@ from mqtt_service import MQTTService
 from button_handler import ButtonHandler
 from state_manager import StateManager
 from wifi_manager import WifiManager
+from state_led import StateLed
 
 wifi_access = secrets.wifi_access
 
@@ -36,11 +37,12 @@ np.write()
 # Define the GPIO pins.
 led_biglight = machine.Pin(6, machine.Pin.OUT) # 21
 led_buttonlight = machine.Pin(3, machine.Pin.OUT) # 16
-led_wifi = machine.Pin(2, machine.Pin.OUT) # 4
 led_intern = machine.Pin(4, machine.Pin.OUT) # 2
 
 button_handler = ButtonHandler(9, cooldown_period=5000, debounce_delay=25)  # GPIO14, 5 Sekunden Cooldown
 wifi_manager = WifiManager(wifi_access)
+wifi_led = StateLed(np, 0)
+mqtt_led = StateLed(np, 1)
 
 mqtt_service = MQTTService(mqtt_server, mqtt_user, mqtt_pass, "msb-state-button-" + machine.unique_id().hex())
 state_manager = StateManager(secrets.API_key, mqtt_client=mqtt_service)
@@ -52,44 +54,22 @@ time.sleep(0.3)
 
 
 
-def neo_wlan_disconnected():
-    for led in range(NUM_LEDS):
-        np[led] = (0, 0, 0)
-    np[0] = (100,0,0)# set the first pixel to white
-    np.write()
-
-def neo_wlan_connected():
-    for led in range(NUM_LEDS):
-        np[led] = (0, 0, 0)
-    np[0] = (0,100,0)# set the first pixel to white
-    np.write()
-
-def neo_wlan_connecting():
-    for led in range(NUM_LEDS):
-        np[led] = (0, 0, 0)
-    np[0] = (100,100,0)# set the first pixel to white
-    np.write()
-
-
-
 def wifi_listener(message):
     print("wifi_listener: "+message)
-    if (message.startswith("connected to")):
-        led_wifi.on()
-        neo_wlan_connected()
-    elif message.startswith("connecting to") or message.startswith("Scanning"):
-        neo_wlan_connecting()
+    if message.startswith("connected to"):
+        wifi_led.ignore()
+    elif message.startswith("connecting to") or message.startswith("Scanning") or message.startswith("Reconnecting"):
+        wifi_led.blinking()
     else:
-        led_wifi.off()
-        neo_wlan_disconnected()
+        wifi_led.error()
 
 def mqtt_connection_listener(connected):
     if connected:
         print("MQTT connection established")
+        mqtt_led.ignore()
     else:
         print("MQTT connection lost")
-        np[1] = (100, 100, 0)  # Yellow for MQTT disconnected
-        np.write()
+        mqtt_led.blinking()
 
 wifi_manager.addListener(wifi_listener)
 mqtt_service.add_connection_listener(mqtt_connection_listener)
@@ -141,9 +121,9 @@ while True:
             for ledid in range(NUM_LEDS):
                 np[ledid] = (10, 0, 0)
 
-        # np[1] shows MQTT status: yellow if disconnected, otherwise follows state
-        if not mqtt_service.is_connected():
-            np[1] = (100, 100, 0)
+        # Status LEDs
+        wifi_led.update()
+        mqtt_led.update()
         np.write()
     except Exception as e:
         print("Error: ", e)
