@@ -74,9 +74,13 @@ src/
 ├── mqtt_service.py   # MQTT client with reconnection logic
 ├── wifi_manager.py   # WiFi management with reconnection
 ├── state_led.py      # Status LED control (ignore/error/blinking)
-├── state_manager.py  # Space state management
+├── state_manager.py  # Space state management (API calls to status.makerspacebonn.de)
 ├── button_handler.py # Button debouncing and cooldown
-└── secrets.py        # Configuration (not in repo)
+├── secrets.py        # Configuration (not in repo)
+└── lib/
+    ├── trickLED.py   # NeoPixel animation library
+    ├── animations.py # LED animation patterns
+    └── generators.py # Animation generators
 ```
 
 ## References
